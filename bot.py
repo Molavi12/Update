@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 import json
 import urllib.parse
+import tempfile
 
 # تنظیمات API
 api_id = 35312792
@@ -58,12 +59,12 @@ HYPER_SPEED_COMMENTS = True  # فعال‌سازی کامنت‌گذاری اب�
 # تنظیمات هوش مصنوعی
 AI_BOT_USERNAME = '@CopilotOfficialBot'
 
-# پوشه ذخیره تمام رسانه های نابود شونده در حافظه داخلی
-SAVE_DIRECTORY = '/storage/emulated/0/Download/Telegram_Saved_Media'
+# پوشه ذخیره تمام رسانه های نابود شونده - سازگار با GitHub Action
+SAVE_DIRECTORY = os.path.join(tempfile.gettempdir(), 'Telegram_Saved_Media')
 os.makedirs(SAVE_DIRECTORY, exist_ok=True)
 
 # فایل برای ذخیره اطلاعات رسانه های ذخیره شده
-SAVED_MEDIA_FILE = '/storage/emulated/0/Download/Telegram_Saved_Media/saved_media.json'
+SAVED_MEDIA_FILE = os.path.join(SAVE_DIRECTORY, 'saved_media.json')
 
 # ذخیره entityهای کانال‌ها
 channel_entities = {}
@@ -178,18 +179,20 @@ async def save_self_destruct_media(message, source_info):
         elif hasattr(message.media, 'photo'):
             file_extension = ".jpg"
         
-        filename = f"{SAVE_DIRECTORY}/self_destruct_{clean_source}_{timestamp}_{message.id}{file_extension}"
+        filename = os.path.join(SAVE_DIRECTORY, f"self_destruct_{clean_source}_{timestamp}_{message.id}{file_extension}")
         
+        # تست نوشتن در دایرکتوری
         try:
-            test_file = f"{SAVE_DIRECTORY}/test_write.txt"
+            test_file = os.path.join(SAVE_DIRECTORY, "test_write.txt")
             with open(test_file, 'w') as f:
                 f.write("test")
             os.remove(test_file)
         except Exception as e:
-            print(f"⚠️ دسترسی به حافظه داخلی ممکن نیست: {e}")
-            alt_save_dir = '/data/data/com.termux/files/home/storage/shared/Download/Telegram_Saved_Media'
+            print(f"⚠️ دسترسی به دایرکتوری موقت ممکن نیست: {e}")
+            # استفاده از دایرکتوری کار به عنوان جایگزین
+            alt_save_dir = './saved_media_fallback'
             os.makedirs(alt_save_dir, exist_ok=True)
-            filename = f"{alt_save_dir}/self_destruct_{clean_source}_{timestamp}_{message.id}{file_extension}"
+            filename = os.path.join(alt_save_dir, f"self_destruct_{clean_source}_{timestamp}_{message.id}{file_extension}")
             print(f"📁 استفاده از مسیر جایگزین: {alt_save_dir}")
         
         downloaded_path = await safe_telegram_call(
@@ -1018,7 +1021,7 @@ async def main():
         print("🔒 سیستم جلوگیری از ارسال تکراری به هوش مصنوعی فعال شد")
         print("💬 سیستم پاسخ به ریپلای‌های پیام‌های اکانت در تمام چت‌ها فعال شد")
         print("🔍 اسکن پیام‌های قدیمی در حال اجرا...")
-        print(f"📁 مسیر ذخیره‌سازی: Download/Telegram_Saved_Media")
+        print(f"📁 مسیر ذخیره‌سازی: {SAVE_DIRECTORY}")
         print("📊 ویژگی‌های فعال:")
         print("  🎯 آپدیت پروفایل و ارسال استیکر هر دقیقه")
         print("  💬 کامنت گذاری ابرسریع (بدون تاخیر)")
