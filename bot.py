@@ -6,8 +6,6 @@ import os
 import sys
 
 # تنظیمات API
-api_id = 35312792
-api_hash = '0536b75d8bbb77161edaba324dec570c'
 
 client = TelegramClient('session_name', api_id, api_hash)
 
