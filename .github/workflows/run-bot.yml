@@ -31,23 +31,24 @@ jobs:
         echo "${{ secrets.TELEGRAM_SESSION }}" > session_name.session
         echo "✅ Session file created from secret"
         
+    - name: List files (debug)
+      run: ls -la
+      
     - name: Run Telegram Bot
       run: |
-        # نصب screen برای اجرای دائم
-        sudo apt-get update
-        sudo apt-get install -y screen
-        
-        # اجرای ربات در screen session
-        screen -dmS telegram-bot python bot.py
-        
-        # منتظر ماندن و لاگ گرفتن
-        sleep 30
-        echo "🤖 Checking bot status..."
-        screen -list
-        ps aux | grep python
-        
-        # نگه داشتن ربات برای مدت طولانی‌تر
-        sleep 3000
+        # بررسی وجود فایل‌ها و اجرای صحیح
+        if [ -f "simple-bot.py" ]; then
+          echo "🔍 پیدا شد: simple-bot.py"
+          python simple-bot.py
+        elif [ -f "bot.py" ]; then
+          echo "🔍 پیدا شد: bot.py" 
+          python bot.py
+        else
+          echo "❌ هیچ فایل رباتی پیدا نشد!"
+          echo "📁 فایل‌های موجود:"
+          ls -la
+          exit 1
+        fi
       env:
         PYTHONUNBUFFERED: 1
         
@@ -59,4 +60,6 @@ jobs:
         path: |
           *.log
           session_name.session
+          simple-bot.py
+          bot.py
         retention-days: 1
