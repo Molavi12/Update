@@ -10,6 +10,7 @@ on:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 ساعت زمان اجرا
     
     steps:
     - name: Checkout repository
@@ -32,7 +33,21 @@ jobs:
         
     - name: Run Telegram Bot
       run: |
-        python bot.py
+        # نصب screen برای اجرای دائم
+        sudo apt-get update
+        sudo apt-get install -y screen
+        
+        # اجرای ربات در screen session
+        screen -dmS telegram-bot python bot.py
+        
+        # منتظر ماندن و لاگ گرفتن
+        sleep 30
+        echo "🤖 Checking bot status..."
+        screen -list
+        ps aux | grep python
+        
+        # نگه داشتن ربات برای مدت طولانی‌تر
+        sleep 3000
       env:
         PYTHONUNBUFFERED: 1
         
